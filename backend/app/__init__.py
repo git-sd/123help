@@ -1,0 +1,1 @@
+"""GhostJob API package."""
