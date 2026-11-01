@@ -16,8 +16,8 @@ Version 1.0 · Palette: Orange, White and Black · Stack: React, Tailwind CSS, R
 ## 2. Brand
 
 - **Name:** GhostJob
-- **Tagline:** Verify Before You Apply.
-- **Voice:** Direct, friendly, protective. Short sentences. Plain language. Avoid accusing companies; say "warning signs detected" rather than "this is a scam".
+- **Tagline:** Verify Before You Apply .
+- **Voice:** Direct, friendly, protective. Short sentences. Plain language. Avoid accusing companies; say "warning signs detected" rather than "this is a scam" .
 - **Logo concept:** A black ghost silhouette with a small orange magnifying glass or checkmark. Provide black-on-white, white-on-black and orange-on-black versions.
 
 ## 3. Colour System
