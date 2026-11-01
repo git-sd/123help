@@ -18,7 +18,8 @@ Copy `.env.example` to `.env`, then set the server-only keys:
 ```bash
 TINYFISH_API_KEY=...
 GEMINI_API_KEY=...
-GEMINI_MODEL=gemini-2.0-flash
+GEMINI_MODEL=gemini-3.8-flash
+REQUIRE_EXTERNAL_PROVIDERS=false
 ```
 
 Restart the API and confirm configuration without exposing secrets:
@@ -36,6 +37,8 @@ python scripts/provider_smoke.py
 It reports `PASS`, `SKIP`, or `FAIL` for each provider and never prints keys or response bodies.
 
 With keys configured, TinyFish handles rendered listing fetches and careers search, while Gemini performs structured risk analysis. If either provider is unavailable, the worker falls back to direct fetch and deterministic rules.
+
+Set `REQUIRE_EXTERNAL_PROVIDERS=true` in staging/production when rules-only fallback should prevent startup.
 
 ## Database
 

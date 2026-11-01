@@ -15,6 +15,18 @@ settings = get_settings()
 app = FastAPI(title="GhostJob API", docs_url="/docs" if settings.environment != "production" else None, redoc_url=None)
 app.add_middleware(CORSMiddleware, allow_origins=settings.cors_origins, allow_credentials=True, allow_methods=["GET", "POST", "DELETE"], allow_headers=["Authorization", "Content-Type"])
 
+
+@app.on_event("startup")
+async def validate_provider_configuration():
+    if settings.require_external_providers:
+        missing = []
+        if not settings.gemini_api_key or settings.gemini_api_key.startswith("replace-"):
+            missing.append("GEMINI_API_KEY")
+        if not settings.tinyfish_api_key or settings.tinyfish_api_key.startswith("replace-"):
+            missing.append("TINYFISH_API_KEY")
+        if missing:
+            raise RuntimeError(f"External providers are required but not configured: {', '.join(missing)}")
+
 # Development-only in-memory store. Replace with SupabaseRepository in deployment.
 reports: dict[str, Report] = {}
 investigations: dict[str, dict] = {}
@@ -62,6 +74,7 @@ def provider_health():
         "tinyfish": {"configured": tinyfish_configured, "fetch_endpoint": settings.tinyfish_fetch_url,
                      "search_endpoint": "https://api.search.tinyfish.ai"},
         "fallbacks": {"analysis": "rules", "web": "direct_fetch"},
+        "ready": (gemini_configured and tinyfish_configured) if settings.require_external_providers else True,
     }
 
 
@@ -110,7 +123,7 @@ async def process_investigation(investigation_id: str, payload: InvestigationCre
 
 
 @app.post("/api/v1/investigations", response_model=InvestigationAccepted, status_code=status.HTTP_202_ACCEPTED)
-async def create_investigation(payload: InvestigationCreate, background_tasks: BackgroundTasks | None = None, user_id: str = Depends(current_user)):
+async def create_investigation(payload: InvestigationCreate, background_tasks: BackgroundTasks, user_id: str = Depends(current_user)):
     if payload.job_url:
         validate_public_url(payload.job_url)
     investigation_id = str(uuid4())
@@ -130,10 +143,7 @@ async def create_investigation(payload: InvestigationCreate, background_tasks: B
     if database_configured():
         db = get_supabase()
         db.table("investigations").insert(record).execute()
-    if background_tasks is not None:
-        background_tasks.add_task(process_investigation, investigation_id, payload)
-    else:
-        await process_investigation(investigation_id, payload)
+    background_tasks.add_task(process_investigation, investigation_id, payload)
     return InvestigationAccepted(id=investigation_id, status="queued")
 
 
@@ -194,4 +204,8 @@ async def rerun_investigation(investigation_id: str, user_id: str = Depends(curr
         raise HTTPException(status_code=404, detail="Investigation not found.")
     row = source[0]
     payload = InvestigationCreate(input_type=row["input_type"], job_url=row.get("job_url"), job_text=row.get("job_text"))
-    return await create_investigation(payload, user_id)
+    tasks = BackgroundTasks()
+    accepted = await create_investigation(payload, tasks, user_id)
+    for task in tasks.tasks:
+        await task.func(*task.args, **task.kwargs)
+    return accepted
