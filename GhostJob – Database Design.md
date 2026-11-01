@@ -92,7 +92,7 @@ Constraints: `CHECK (input_type IN ('url','text'))`, `CHECK (char_length(job_tex
 
 ### 3.4 sources
 
-Every web page or text excerpt used as evidence.
+Every web page or text excerpt used as evidence. 
 
 | Column | Type | Notes |
 | --- | --- | --- |
