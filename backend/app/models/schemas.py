@@ -46,6 +46,31 @@ class Finding(BaseModel):
     quote: str | None = None
 
 
+class Source(BaseModel):
+    url: str
+    title: str = "Job listing"
+    source_type: str = "job_listing"
+
+
+class EvidenceNode(BaseModel):
+    id: str
+    label: str
+    node_type: str
+    status: str
+    url: str | None = None
+
+
+class GraphEdge(BaseModel):
+    source: str
+    target: str
+    relation: str
+
+
+class EvidenceGraph(BaseModel):
+    nodes: list[EvidenceNode] = Field(default_factory=list)
+    edges: list[GraphEdge] = Field(default_factory=list)
+
+
 class Report(BaseModel):
     risk_level: RiskLevel
     risk_score: int
@@ -53,4 +78,6 @@ class Report(BaseModel):
     fee_detected: bool
     findings: list[Finding]
     next_steps: list[str]
+    sources: list[Source] = Field(default_factory=list)
+    graph: EvidenceGraph = Field(default_factory=EvidenceGraph)
     disclaimer: str = "Advisory assessment based on public information, not a guarantee."

@@ -10,7 +10,9 @@ class Settings(BaseSettings):
     supabase_jwks_url: str = ""
     supabase_service_role_key: str = ""
     tinyfish_api_key: str = ""
+    tinyfish_fetch_url: str = "https://api.fetch.tinyfish.ai"
     gemini_api_key: str = ""
+    gemini_model: str = "gemini-2.0-flash"
     resend_api_key: str = ""
     from_email: str = ""
     max_concurrent_investigations: int = 10
